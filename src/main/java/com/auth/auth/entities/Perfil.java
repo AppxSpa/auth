@@ -18,7 +18,7 @@ public class Perfil {
     @ManyToMany(mappedBy = "perfiles", fetch = FetchType.LAZY)
     private Set<Usuario> usuarios = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "perfil_sistema", joinColumns = @JoinColumn(name = "perfil_id"), inverseJoinColumns = @JoinColumn(name = "sistema_id"))
     private Set<Sistema> sistemas;
 
