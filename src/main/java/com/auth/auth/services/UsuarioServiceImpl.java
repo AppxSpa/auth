@@ -77,9 +77,21 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     public List<UsuarioResponseList> findAll() {
 
-        List<Usuario> response = usuarioRepository.findAll();
+        List<Usuario> allUsers = usuarioRepository.findAll();
 
-        return response.stream()
+       List<Usuario> filteredUsers = allUsers.stream()
+        .filter(u -> u.getRoles()
+                      .stream()
+                      .anyMatch(r -> r.getId() == 3))
+        .map(u -> {
+            u.setRoles(u.getRoles().stream().filter(r -> r.getId() == 3).toList());
+            return u;
+        })
+        .toList();
+
+        
+
+        List<UsuarioResponseList> dtoList = filteredUsers.stream()
                 .map(res -> {
 
                     UsuarioResponseList dto = new UsuarioResponseList();
@@ -90,21 +102,30 @@ public class UsuarioServiceImpl implements UsuarioService {
                     UsuarioDepartamentos usuarioDepartamentos = usuarioDepartamentosService.findByUsuario(res);
 
                     dto.setUsername(res.getUsername());
-                    dto.setNombre(personaResponse.getNombreCompleto());
-                    dto.setRut(personaResponse.getRut());
-                    dto.setVrut(personaResponse.getVrut());
-                    dto.setIdDepto(usuarioDepartamentos != null
-                            ? usuarioDepartamentos.getNombreDepartamento()
-                            : null);
+                    if(personaResponse != null){
+                        dto.setNombre(personaResponse.getNombreCompleto());
+                        dto.setRut(personaResponse.getRut());
+                        dto.setVrut(personaResponse.getVrut());
+                    }
+
+                    if(usuarioDepartamentos != null){
+                        dto.setIdDepto(usuarioDepartamentos.getNombreDepartamento());
+                    } else {
+                        dto.setIdDepto(null);
+                    }
+
 
                     return dto;
 
-                }).filter(dto -> dto.getIdDepto() != null)
-                .toList();
+                }).toList();
+        
+        return dtoList;
     }
 
     @Override
     public UsuarioResponse createUser(Usuario usuario) {
+
+
 
         usuario.setRoles(getRolesForUser(usuario));
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
@@ -114,7 +135,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         int rut = Integer.parseInt(usuario.getUsername());
 
         Persona persona = personaService.getPersonaByRut(rut);
-
+   
         PersonaResponse personaResponse = apiServicePersona.getPersonaInfo(persona.getRut());
         usuario.setPersona(persona);
 
