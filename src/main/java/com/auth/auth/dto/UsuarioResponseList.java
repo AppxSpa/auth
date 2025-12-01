@@ -7,6 +7,14 @@ public class UsuarioResponseList {
     private Long idDepto;
     private Integer rut;
     private String vrut;
+    private String nombreDepartamento;
+
+    public String getNombreDepartamento() {
+        return nombreDepartamento;
+    }
+    public void setNombreDepartamento(String nombreDepartamento) {
+        this.nombreDepartamento = nombreDepartamento;
+    }
 
     public Integer getRut() {
         return rut;

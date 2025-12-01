@@ -12,6 +12,8 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
 
     private final PasswordResetTokenRepository passwordResetTokenRepository;
 
+    private static final String TOKEN_NOT_FOUND = "Token %s no encontrado";
+
     public PasswordResetTokenServiceImpl(PasswordResetTokenRepository passwordResetTokenRepository) {
         this.passwordResetTokenRepository = passwordResetTokenRepository;
     }
@@ -26,7 +28,7 @@ public class PasswordResetTokenServiceImpl implements PasswordResetTokenService 
     public PasswordResetToken getByToken(String token) {
 
         return RepositoryUtils.findOrThrow(passwordResetTokenRepository.findByToken(token),
-                String.format("Token %s no encontrado", token));
+            String.format(TOKEN_NOT_FOUND, token));
     }
 
     @Override

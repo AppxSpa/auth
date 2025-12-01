@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.auth.auth.api.PersonaResponse;
 import com.auth.auth.configuration.ApiProperties;
 import com.auth.auth.dto.PasswordRequest;
+import com.auth.auth.dto.RecoveryResponse;
 import com.auth.auth.entities.PasswordResetToken;
 import com.auth.auth.entities.Usuario;
 import com.auth.auth.exceptions.SendMailExceptions;
@@ -43,7 +44,7 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
     }
 
     @Override
-    public void sendRecoveryEmail(Integer rut) {
+    public RecoveryResponse sendRecoveryEmail(Integer rut) {
 
         // Buscar al usuario por RUT
         Usuario usuario = usuarioService.findByUsername(rut.toString());
@@ -70,6 +71,8 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
         } catch (SendMailExceptions e) {
             throw new SendMailExceptions("Error enviando correo de activación a " + personaResponse.getEmail());
         }
+
+        return new RecoveryResponse("Correo de recuperación enviado", personaResponse.getEmail());
     }
 
     @Override

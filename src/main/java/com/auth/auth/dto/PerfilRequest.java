@@ -1,10 +1,9 @@
 package com.auth.auth.dto;
 
-import java.util.Set;
-
 public class PerfilRequest {
     private String nombre;
-    private Set<Long> sistemaIds;
+    private Long sistemaId;
+    private java.util.Set<Long> moduloIds;
 
     public String getNombre() {
         return nombre;
@@ -14,11 +13,19 @@ public class PerfilRequest {
         this.nombre = nombre;
     }
 
-    public Set<Long> getSistemaIds() {
-        return sistemaIds;
+    public Long getSistemaId() {
+        return sistemaId;
     }
 
-    public void setSistemaIds(Set<Long> sistemaIds) {
-        this.sistemaIds = sistemaIds;
+    public void setSistemaId(Long sistemaId) {
+        this.sistemaId = sistemaId;
+    }
+
+    public java.util.Set<Long> getModuloIds() {
+        return moduloIds;
+    }
+
+    public void setModuloIds(java.util.Set<Long> moduloIds) {
+        this.moduloIds = moduloIds;
     }
 }

@@ -14,6 +14,7 @@ import com.auth.auth.api.PersonaRequest;
 import com.auth.auth.api.PersonaResponse;
 import com.auth.auth.configuration.ApiProperties;
 import com.auth.auth.dto.ChangeMailRequest;
+import com.auth.auth.dto.DepartamentoResponse;
 import com.auth.auth.dto.UsuarioRequest;
 import com.auth.auth.dto.UsuarioResponse;
 import com.auth.auth.dto.UsuarioResponseList;
@@ -22,8 +23,11 @@ import com.auth.auth.entities.Persona;
 import com.auth.auth.entities.Rol;
 import com.auth.auth.entities.Usuario;
 import com.auth.auth.entities.UsuarioDepartamentos;
+import com.auth.auth.entities.Perfil;
 import com.auth.auth.exceptions.SendMailExceptions;
 import com.auth.auth.repositories.UsuarioRepository;
+import com.auth.auth.repositories.PerfilRepository;
+import com.auth.auth.services.interfaces.ApiDepartamentoService;
 import com.auth.auth.services.interfaces.ApiServiceMail;
 import com.auth.auth.services.interfaces.ApiServicePersona;
 import com.auth.auth.services.interfaces.DepartamentoService;
@@ -34,6 +38,9 @@ import com.auth.auth.utils.RepositoryUtils;
 
 @Service
 public class UsuarioServiceImpl implements UsuarioService {
+
+    private static final String USER_NOT_FOUND = "Usuario %s no encontrado";
+    private static final String PROFILE_NOT_FOUND = "Perfil %d no encontrado";
 
     private final UsuarioDepartamentosService usuarioDepartamentosService;
 
@@ -52,6 +59,8 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final ApiServiceMail apiServiceMail;
 
     private final ApiProperties apiProperties;
+    private final PerfilRepository perfilRepository;
+    private final ApiDepartamentoService apiDepartamentoService;
 
     public UsuarioServiceImpl(UsuarioRepository usuarioRepository,
             PasswordEncoder passwordEncoder,
@@ -61,7 +70,9 @@ public class UsuarioServiceImpl implements UsuarioService {
             UsuarioDepartamentosService usuarioDepartamentosService,
             DepartamentoService departamentoService,
             RolService rolService,
-            PersonaService personaService) {
+            PersonaService personaService,
+            PerfilRepository perfilRepository,
+            ApiDepartamentoService apiDepartamentoService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.apiProperties = apiProperties;
@@ -71,6 +82,8 @@ public class UsuarioServiceImpl implements UsuarioService {
         this.departamentoService = departamentoService;
         this.rolService = rolService;
         this.personaService = personaService;
+        this.perfilRepository = perfilRepository;
+        this.apiDepartamentoService = apiDepartamentoService;
 
     }
 
@@ -79,19 +92,17 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         List<Usuario> allUsers = usuarioRepository.findAll();
 
-       List<Usuario> filteredUsers = allUsers.stream()
-        .filter(u -> u.getRoles()
-                      .stream()
-                      .anyMatch(r -> r.getId() == 3))
-        .map(u -> {
-            u.setRoles(u.getRoles().stream().filter(r -> r.getId() == 3).toList());
-            return u;
-        })
-        .toList();
+        List<Usuario> filteredUsers = allUsers.stream()
+                .filter(u -> u.getRoles()
+                        .stream()
+                        .anyMatch(r -> r.getId() == 3))
+                .map(u -> {
+                    u.setRoles(u.getRoles().stream().filter(r -> r.getId() == 3).toList());
+                    return u;
+                })
+                .toList();
 
-        
-
-        List<UsuarioResponseList> dtoList = filteredUsers.stream()
+        return filteredUsers.stream()
                 .map(res -> {
 
                     UsuarioResponseList dto = new UsuarioResponseList();
@@ -102,30 +113,30 @@ public class UsuarioServiceImpl implements UsuarioService {
                     UsuarioDepartamentos usuarioDepartamentos = usuarioDepartamentosService.findByUsuario(res);
 
                     dto.setUsername(res.getUsername());
-                    if(personaResponse != null){
+                    if (personaResponse != null) {
                         dto.setNombre(personaResponse.getNombreCompleto());
                         dto.setRut(personaResponse.getRut());
                         dto.setVrut(personaResponse.getVrut());
                     }
 
-                    if(usuarioDepartamentos != null){
-                        dto.setIdDepto(usuarioDepartamentos.getNombreDepartamento());
+                    if (usuarioDepartamentos != null) {
+                        DepartamentoResponse departamentoResponse = apiDepartamentoService
+                                .getDepartamentoById(usuarioDepartamentos.getDepartamento().getId());
+                        dto.setIdDepto(usuarioDepartamentos.getIdDepartamento());
+                        if (departamentoResponse != null) {
+                            dto.setNombreDepartamento(departamentoResponse.getNombre());
+                        }
                     } else {
                         dto.setIdDepto(null);
                     }
 
-
                     return dto;
 
                 }).toList();
-        
-        return dtoList;
     }
 
     @Override
     public UsuarioResponse createUser(Usuario usuario) {
-
-
 
         usuario.setRoles(getRolesForUser(usuario));
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
@@ -135,7 +146,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         int rut = Integer.parseInt(usuario.getUsername());
 
         Persona persona = personaService.getPersonaByRut(rut);
-   
+
         PersonaResponse personaResponse = apiServicePersona.getPersonaInfo(persona.getRut());
         usuario.setPersona(persona);
 
@@ -283,7 +294,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public UsuarioResponse getUsuario(String username) {
 
         Usuario usuario = RepositoryUtils.findOrThrow(usuarioRepository.findByUsername(username),
-                String.format("Usuario %s no encontrad0", username));
+                String.format(USER_NOT_FOUND, username));
 
         UsuarioDepartamentos usuarioDepartamentos = usuarioDepartamentosService.findByUsuario(usuario);
 
@@ -313,6 +324,57 @@ public class UsuarioServiceImpl implements UsuarioService {
         return RepositoryUtils.findOrThrow(usuarioRepository.findByUsername(username),
                 String.format("Usuairo %s no encontrado", username));
 
+    }
+
+    @Override
+    public void asignarPerfilesAUsuario(String username, java.util.List<Long> perfilIds) {
+        Usuario usuario = RepositoryUtils.findOrThrow(usuarioRepository.findByUsername(username),
+                String.format(USER_NOT_FOUND, username));
+
+        java.util.List<com.auth.auth.entities.Perfil> perfiles = perfilRepository.findAllById(perfilIds);
+        if (perfiles.size() != perfilIds.size()) {
+            throw new IllegalArgumentException("Alguno de los perfiles no fue encontrado");
+        }
+
+        usuario.setPerfiles(perfiles);
+        usuarioRepository.save(usuario);
+    }
+
+    @Override
+    public void agregarPerfilAUsuario(String username, Long perfilId) {
+        Usuario usuario = RepositoryUtils.findOrThrow(usuarioRepository.findByUsername(username),
+                String.format(USER_NOT_FOUND, username));
+
+        com.auth.auth.entities.Perfil perfil = RepositoryUtils.findOrThrow(perfilRepository.findById(perfilId),
+                String.format(PROFILE_NOT_FOUND, perfilId));
+
+        java.util.List<Perfil> actuales = usuario.getPerfiles();
+        if (actuales == null) {
+            actuales = new java.util.ArrayList<>();
+        }
+        boolean existe = actuales.stream().anyMatch(p -> p.getId().equals(perfil.getId()));
+        if (!existe) {
+            actuales.add(perfil);
+            usuario.setPerfiles(actuales);
+            usuarioRepository.save(usuario);
+        }
+    }
+
+    @Override
+    public void removerPerfilDeUsuario(String username, Long perfilId) {
+        Usuario usuario = RepositoryUtils.findOrThrow(usuarioRepository.findByUsername(username),
+                String.format(USER_NOT_FOUND, username));
+
+        java.util.List<Perfil> actuales = usuario.getPerfiles();
+        if (actuales == null || actuales.isEmpty()) {
+            return;
+        }
+
+        boolean removed = actuales.removeIf(p -> p.getId().equals(perfilId));
+        if (removed) {
+            usuario.setPerfiles(actuales);
+            usuarioRepository.save(usuario);
+        }
     }
 
 }

@@ -27,4 +27,13 @@ public interface UsuarioService {
 
   Usuario findByUsername(String username);
 
+  // Asignar una lista de perfiles a un usuario (reemplaza los perfiles actuales)
+  void asignarPerfilesAUsuario(String username, java.util.List<Long> perfilIds);
+
+  // Agregar un perfil a un usuario sin eliminar los existentes
+  void agregarPerfilAUsuario(String username, Long perfilId);
+
+  // Remover un perfil de un usuario
+  void removerPerfilDeUsuario(String username, Long perfilId);
+
 }

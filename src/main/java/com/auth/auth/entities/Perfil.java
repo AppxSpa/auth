@@ -12,15 +12,19 @@ public class Perfil {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String nombre;
 
     @ManyToMany(mappedBy = "perfiles", fetch = FetchType.LAZY)
     private Set<Usuario> usuarios = new HashSet<>();
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "sistema_id", nullable = false)
+    private Sistema sistema;
+
     @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(name = "perfil_sistema", joinColumns = @JoinColumn(name = "perfil_id"), inverseJoinColumns = @JoinColumn(name = "sistema_id"))
-    private Set<Sistema> sistemas;
+    @JoinTable(name = "perfiles_modulos", joinColumns = @JoinColumn(name = "perfil_id"), inverseJoinColumns = @JoinColumn(name = "modulo_id"))
+    private Set<Modulo> modulos = new HashSet<>();
 
     // Getters y Setters
     public Long getId() {
@@ -47,7 +51,6 @@ public class Perfil {
         this.usuarios = usuarios;
     }
 
-    
     public void addUsuario(Usuario usuario) {
         usuarios.add(usuario);
     }
@@ -56,14 +59,28 @@ public class Perfil {
         usuarios.remove(usuario);
     }
 
-    public Set<Sistema> getSistemas() {
-        return sistemas;
+    public Sistema getSistema() {
+        return sistema;
     }
 
-    public void setSistemas(Set<Sistema> sistemas) {
-        this.sistemas = sistemas;
+    public void setSistema(Sistema sistema) {
+        this.sistema = sistema;
     }
 
- 
+    public Set<Modulo> getModulos() {
+        return modulos;
+    }
+
+    public void setModulos(Set<Modulo> modulos) {
+        this.modulos = modulos;
+    }
+
+    public void addModulo(Modulo modulo) {
+        modulos.add(modulo);
+    }
+
+    public void removeModulo(Modulo modulo) {
+        modulos.remove(modulo);
+    }
 
 }

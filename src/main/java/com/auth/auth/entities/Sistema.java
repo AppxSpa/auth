@@ -22,8 +22,8 @@ public class Sistema {
     @OneToMany(fetch = FetchType.EAGER, mappedBy = "sistema", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Modulo> modulos = new HashSet<>();
 
-    @ManyToMany(mappedBy = "sistemas")
-    private Set<Perfil> perfiles;
+    @OneToMany(mappedBy = "sistema", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<Perfil> perfiles = new HashSet<>();
 
     public Sistema() {
     }
@@ -73,6 +73,16 @@ public class Sistema {
 
     public void setPerfiles(Set<Perfil> perfiles) {
         this.perfiles = perfiles;
+    }
+
+    public void addPerfil(Perfil perfil) {
+        perfiles.add(perfil);
+        perfil.setSistema(this);
+    }
+
+    public void removePerfil(Perfil perfil) {
+        perfiles.remove(perfil);
+        perfil.setSistema(null);
     }
 
     // Métodos auxiliares para mantener consistencia bidireccional

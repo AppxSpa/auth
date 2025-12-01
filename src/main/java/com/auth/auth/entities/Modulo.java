@@ -25,6 +25,9 @@ public class Modulo {
     @OneToMany(mappedBy = "modulo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Permiso> permisos = new HashSet<>();
 
+    @ManyToMany(mappedBy = "modulos", fetch = FetchType.LAZY)
+    private Set<Perfil> perfiles = new HashSet<>();
+
     // Getters y setters
 
     public Long getId() {
@@ -65,6 +68,14 @@ public class Modulo {
 
     public void setPermisos(Set<Permiso> permisos) {
         this.permisos = permisos;
+    }
+
+    public Set<Perfil> getPerfiles() {
+        return perfiles;
+    }
+
+    public void setPerfiles(Set<Perfil> perfiles) {
+        this.perfiles = perfiles;
     }
 
     // Métodos auxiliares para mantener consistencia bidireccional

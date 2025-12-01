@@ -1,6 +1,7 @@
 package com.auth.auth.controllers;
 
 import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +67,36 @@ public class UsuarioController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
 
+    }
+
+    @PostMapping("/{username}/perfiles")
+    public ResponseEntity<Object> setPerfiles(@PathVariable String username, @RequestBody List<Long> perfilIds) {
+        try {
+            usuarioService.asignarPerfilesAUsuario(username, perfilIds);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/{username}/perfiles/{perfilId}")
+    public ResponseEntity<Object> addPerfil(@PathVariable String username, @PathVariable Long perfilId) {
+        try {
+            usuarioService.agregarPerfilAUsuario(username, perfilId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{username}/perfiles/{perfilId}")
+    public ResponseEntity<Object> removePerfil(@PathVariable String username, @PathVariable Long perfilId) {
+        try {
+            usuarioService.removerPerfilDeUsuario(username, perfilId);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
     @GetMapping("/buscar/{username}")

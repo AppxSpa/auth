@@ -11,6 +11,14 @@ public class ApiProperties {
     private String mailUrl;
     private String activationUrl;
     private String recoveryUrl;
+    private String paramUrl;
+
+    public String getParamUrl() {
+        return paramUrl;
+    }
+    public void setParamUrl(String paramUrl) {
+        this.paramUrl = paramUrl;
+    }
 
     public String getPersonaUrl() {
         return personaUrl;

@@ -25,8 +25,8 @@ public class PasswordController {
     @PostMapping("/recover")
     public ResponseEntity<Object> recoverPassword(@RequestParam Integer rut) {
         try {
-            passwordRecoveryService.sendRecoveryEmail(rut);
-            return ResponseEntity.ok("Correo enviado exitosamente");
+
+            return ResponseEntity.ok(passwordRecoveryService.sendRecoveryEmail(rut));
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body("El parámetro 'rut' debe ser un número válido.");
         }

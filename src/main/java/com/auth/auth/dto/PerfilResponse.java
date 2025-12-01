@@ -1,16 +1,15 @@
 package com.auth.auth.dto;
 
-import java.util.Set;
-
 public class PerfilResponse {
     private Long id;
     private String nombre;
-    private Set<String> sistemas;
+    private String sistema;
+    private java.util.Set<String> modulos;
 
-    public PerfilResponse(Long id, String nombre, Set<String> sistemas) {
+    public PerfilResponse(Long id, String nombre, String sistema) {
         this.id = id;
         this.nombre = nombre;
-        this.sistemas = sistemas;
+        this.sistema = sistema;
     }
 
     // Getters
@@ -22,7 +21,15 @@ public class PerfilResponse {
         return nombre;
     }
 
-    public Set<String> getSistemas() {
-        return sistemas;
+    public String getSistema() {
+        return sistema;
+    }
+
+    public java.util.Set<String> getModulos() {
+        return modulos;
+    }
+
+    public void setModulos(java.util.Set<String> modulos) {
+        this.modulos = modulos;
     }
 }

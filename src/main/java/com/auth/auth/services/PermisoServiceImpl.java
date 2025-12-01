@@ -29,6 +29,9 @@ public class PermisoServiceImpl implements PermisoService {
                 this.moduloRepository = moduloRepository;
         }
 
+        private static final String SISTEMA_NOT_FOUND = "Sistema con %d no encontrado";
+        private static final String MODULO_NOT_FOUND = "Módulo con %d no encontrado";
+
         @Override
         public PermisoResponse crearPermiso(PermisoRequest request) {
                 Sistema sistema = getSistemaById(request.getSistemaId());
@@ -51,11 +54,11 @@ public class PermisoServiceImpl implements PermisoService {
 
         private Sistema getSistemaById(Long idSistema) {
                 return RepositoryUtils.findOrThrow(sistemaRepository.findById(idSistema),
-                                String.format("Sistema con %d no encontrado", idSistema));
+                                String.format(SISTEMA_NOT_FOUND, idSistema));
         }
 
         private Modulo getModuloById(Long idModulo) {
                 return RepositoryUtils.findOrThrow(moduloRepository.findById(idModulo),
-                                String.format("Módulo con %d no encontrado", idModulo));
+                                String.format(MODULO_NOT_FOUND, idModulo));
         }
 }

@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
-
-import javax.crypto.SecretKey;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,10 +14,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.auth.auth.dto.AuthenticationResponse;
-import com.auth.auth.dto.ModuloDto;
 import com.auth.auth.dto.PerfilDto;
-import com.auth.auth.dto.PermisoDto;
-import com.auth.auth.dto.SistemaDto;
+import com.auth.auth.utils.PerfilMapper;
 import com.auth.auth.entities.Perfil;
 import com.auth.auth.entities.Usuario;
 import com.auth.auth.repositories.UsuarioRepository;
@@ -30,11 +25,12 @@ import static com.auth.auth.security.TokenJwtConfig.*;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import javax.crypto.SecretKey;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.stream.Collectors;
+
 
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
@@ -42,6 +38,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final JwtUtils jwtUtils;
     private final UsuarioRepository usuarioRepository;
+        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
+                .getLogger(JwtAuthenticationFilter.class);
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtUtils jwtUtils,
             UsuarioRepository usuarioRepository) {
@@ -87,39 +85,27 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Usuario usuario = usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("no existe el usuario"));
 
+        // LOG: imprimir perfiles y sistemas relacionados para depuración
+        try {
+            logger.info("Login usuario='{}' id={} - perfiles asociados:", username, usuario.getId());
+            if (usuario.getPerfiles() != null) {
+                for (Perfil p : usuario.getPerfiles()) {
+                    String sistemaInfo = p.getSistema() != null
+                            ? String.format("sistema[id=%d,name=%s]", p.getSistema().getId(), p.getSistema().getNombre())
+                            : "sistema=null";
+                    logger.info("  perfil[id={},name={}] -> {}", p.getId(), p.getNombre(), sistemaInfo);
+                    if (p.getSistema() != null && p.getSistema().getModulos() != null) {
+                        p.getSistema().getModulos().forEach(m -> logger.info("    modulo[id={},nombre={}]", m.getId(), m.getNombre()));
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            logger.warn("Error al loggear perfiles del usuario {}: {}", username, ex.getMessage());
+        }
+
         List<Perfil> perfilesUsuario = usuario.getPerfiles();
 
-        List<PerfilDto> perfilesDto = perfilesUsuario.stream().map(perfil -> {
-            PerfilDto dto = new PerfilDto();
-            dto.setId(perfil.getId());
-            dto.setNombre(perfil.getNombre());
-
-            // Ahora perfil.getSistemas() devuelve un Set<Sistema>
-            Set<SistemaDto> sistemasDto = perfil.getSistemas().stream().map(sistema -> {
-                SistemaDto sistemaDto = new SistemaDto();
-                sistemaDto.setNombreSistema(sistema.getNombre());
-                sistemaDto.setCodSistema(sistema.getCodigo()); // Ajusta si usas otro nombre de campo
-
-                Set<ModuloDto> modulosDto = sistema.getModulos().stream().map(modulo -> {
-                    ModuloDto moduloDto = new ModuloDto();
-                    moduloDto.setIdModulo(modulo.getId());
-                    moduloDto.setNombreModulo(modulo.getNombre());
-
-                    Set<PermisoDto> permisoDtos = modulo.getPermisos().stream()
-                            .map(permiso -> new PermisoDto(permiso.getId(), permiso.getNombre()))
-                            .collect(Collectors.toSet());
-
-                    moduloDto.setPermisos(permisoDtos);
-                    return moduloDto;
-                }).collect(Collectors.toSet());
-
-                sistemaDto.setModulos(modulosDto);
-                return sistemaDto;
-            }).collect(Collectors.toSet());
-
-            dto.setSistemas(sistemasDto);
-            return dto;
-        }).toList();
+        List<PerfilDto> perfilesDto = perfilesUsuario.stream().map(PerfilMapper::toDto).toList();
 
         Claims claims = Jwts.claims()
                 .add("authorities", new ObjectMapper().writeValueAsString(roles))
