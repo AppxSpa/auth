@@ -1,5 +1,6 @@
 package com.auth.auth.repositories;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,5 +15,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     Optional<Usuario> findByActivationToken(String activationToken);
 
     Optional<Usuario> findByPersona(Persona persona);
+
+    List<Usuario> findByRoles_Name(String name);
 
 }

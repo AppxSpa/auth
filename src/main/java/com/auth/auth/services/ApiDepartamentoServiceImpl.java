@@ -1,6 +1,7 @@
 package com.auth.auth.services;
 
 import org.springframework.http.HttpStatusCode;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.auth.auth.configuration.ApiProperties;
@@ -9,6 +10,7 @@ import com.auth.auth.services.interfaces.ApiDepartamentoService;
 
 import reactor.core.publisher.Mono;
 
+@Service
 public class ApiDepartamentoServiceImpl implements ApiDepartamentoService {
     private final WebClient webClientPersona;
 
