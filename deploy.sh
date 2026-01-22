@@ -1,7 +1,8 @@
+sudo docker pull mirkogutierrezappx/auth:latest
+
 sudo docker stop auth-container 2>/dev/null
 sudo docker rm auth-container 2>/dev/null
 
-sudo docker build -t auth .
 
 sudo docker run \
            --restart always \
@@ -9,4 +10,6 @@ sudo docker run \
            --env-file .env \
            --network appx \
            --add-host=host.docker.internal:host-gateway \
-           --name auth-container auth
+           --name auth-container auth \
+           mirkogutierrezappx/auth:latest
+
