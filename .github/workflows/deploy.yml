@@ -1,4 +1,4 @@
-name: Docker CI Agendalc
+name: Docker CI Auth
 
 on:
   push:
@@ -23,4 +23,4 @@ jobs:
           context: .
           push: true
           # Usamos tu usuario confirmado de las capturas
-          tags: mirkogutierrezappx/agendalc:latest
+          tags: mirkogutierrezappx/auth:latest
