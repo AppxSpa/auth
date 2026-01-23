@@ -1,12 +1,27 @@
 #!/bin/bash
 
-# 1. Bajar la última versión de Docker Hub
-docker pull mirkogutierrezappx/auth:latest
-# 2. Limpieza de contenedores anteriores
+# Si ejecutas: ./deploy.sh prod -> descarga de la nube
+# Si ejecutas: ./deploy.sh      -> compila localmente (Modo Desarrollo)
+
+MODO=${1:-"dev"}
+NOMBRE_IMAGEN="mirkogutierrezappx/auth"
+
+if [ "$MODO" == "prod" ]; then
+    echo "--- MODO PRODUCCIÓN: Bajando imagen de Docker Hub ---"
+    docker pull $NOMBRE_IMAGEN:latest
+else
+    echo "--- MODO DESARROLLO: Compilando localmente ---"
+    # Compila el JAR saltando los tests para ir más rápido
+    ./mvnw clean package -DskipTests
+    # Construye la imagen local con el mismo nombre
+    docker build -t $NOMBRE_IMAGEN:latest .
+fi
+
+echo "--- Limpiando contenedor anterior ---"
 docker stop auth-container 2>/dev/null
 docker rm auth-container 2>/dev/null
 
-# 3. Ejecución corregida
+echo "--- Iniciando contenedor ---"
 docker run \
            --restart always \
            -d -p 8083:8083 \
@@ -14,7 +29,9 @@ docker run \
            --network appx \
            --add-host=host.docker.internal:host-gateway \
            --name auth-container \
-           mirkogutierrezappx/auth:latest
+           $NOMBRE_IMAGEN:latest
 
-# Borra imágenes antiguas que ya no se usan
+# Limpieza de imágenes huérfanas
 docker image prune -f
+
+echo "--- ¡Listo! Accede a: http://localhost:8083 ---"
