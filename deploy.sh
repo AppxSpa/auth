@@ -1,27 +1,25 @@
 #!/bin/bash
 
-# Si ejecutas: ./deploy.sh prod -> descarga de la nube
-# Si ejecutas: ./deploy.sh      -> compila localmente (Modo Desarrollo)
+# Uso:
+# ./deploy.sh        -> Modo Desarrollo (Compila y corre local en tu laptop)
+# ./deploy.sh prod   -> Modo Producción (Baja la imagen de GitHub/Docker Hub)
 
-MODO=${1:-"dev"}
+OPCION=${1:-"dev"}
 NOMBRE_IMAGEN="mirkogutierrezappx/auth"
 
-if [ "$MODO" == "prod" ]; then
-    echo "--- MODO PRODUCCIÓN: Bajando imagen de Docker Hub ---"
+if [ "$OPCION" == "prod" ]; then
+    echo "--- MODO PRODUCCIÓN: Bajando imagen oficial de Docker Hub ---"
     docker pull $NOMBRE_IMAGEN:latest
 else
-    echo "--- MODO DESARROLLO: Compilando localmente ---"
-    # Compila el JAR saltando los tests para ir más rápido
+    echo "--- MODO DESARROLLO: Compilando localmente en Laptop ---"
     ./mvnw clean package -DskipTests
-    # Construye la imagen local con el mismo nombre
     docker build -t $NOMBRE_IMAGEN:latest .
 fi
 
-echo "--- Limpiando contenedor anterior ---"
+echo "--- Reiniciando Contenedor ---"
 docker stop auth-container 2>/dev/null
 docker rm auth-container 2>/dev/null
 
-echo "--- Iniciando contenedor ---"
 docker run \
            --restart always \
            -d -p 8083:8083 \
@@ -31,7 +29,5 @@ docker run \
            --name auth-container \
            $NOMBRE_IMAGEN:latest
 
-# Limpieza de imágenes huérfanas
 docker image prune -f
-
-echo "--- ¡Listo! Accede a: http://localhost:8083 ---"
+echo "--- Despliegue finalizado en modo: $OPCION ---"
