@@ -1,37 +1,47 @@
 #!/bin/bash
 
-# Si ejecutas: ./deploy.sh prod -> descarga de la nube
-# Si ejecutas: ./deploy.sh      -> compila localmente (Modo Desarrollo)
+# =========================================================
+# CONFIGURACIÓN DEL MICROSERVICIO (Actualizado a GHCR)
+# =========================================================
+NOMBRE_APP="auth"
+PUERTO="8083"
 
-MODO=${1:-"dev"}
-NOMBRE_IMAGEN="mirkogutierrezappx/auth"
+# CORRECCIÓN: Usar la organización AppxSpa en minúsculas
+IMAGEN_HUB="ghcr.io/appxspa/auth" 
+# =========================================================
 
-if [ "$MODO" == "prod" ]; then
-    echo "--- MODO PRODUCCIÓN: Bajando imagen de Docker Hub ---"
-    docker pull $NOMBRE_IMAGEN:latest
-else
-    echo "--- MODO DESARROLLO: Compilando localmente ---"
-    # Compila el JAR saltando los tests para ir más rápido
-    ./mvnw clean package -DskipTests
-    # Construye la imagen local con el mismo nombre
-    docker build -t $NOMBRE_IMAGEN:latest .
-fi
+OPCION=${1:-"dev"}
+
+case $OPCION in
+    "prod")
+        echo "--- MODO PRODUCCIÓN: Bajando de GHCR ($IMAGEN_HUB) ---"
+        docker pull $IMAGEN_HUB:latest
+        TARGET_IMAGE="$IMAGEN_HUB:latest"
+        ;;
+    *)
+        echo "--- MODO DESARROLLO: Compilando localmente ($NOMBRE_APP) ---"
+        # Asegúrate de tener permisos en mvnw
+        ./mvnw clean package -DskipTests
+        docker build -t $NOMBRE_APP:local .
+        TARGET_IMAGE="$NOMBRE_APP:local"
+        ;;
+esac
 
 echo "--- Limpiando contenedor anterior ---"
-docker stop auth-container 2>/dev/null
-docker rm auth-container 2>/dev/null
+docker stop ${NOMBRE_APP}-container 2>/dev/null
+docker rm ${NOMBRE_APP}-container 2>/dev/null
 
-echo "--- Iniciando contenedor ---"
+echo "--- Iniciando contenedor en puerto $PUERTO ---"
+# OJO: Verifica si la red es 'laflorida' o 'appx'
 docker run \
            --restart always \
-           -d -p 8083:8083 \
+           -d \
+           -p ${PUERTO}:${PUERTO} \
            --env-file .env \
            --network appx \
            --add-host=host.docker.internal:host-gateway \
-           --name auth-container \
-           $NOMBRE_IMAGEN:latest
+           --name ${NOMBRE_APP}-container \
+           $TARGET_IMAGE
 
-# Limpieza de imágenes huérfanas
 docker image prune -f
-
-echo "--- ¡Listo! Accede a: http://localhost:8083 ---"
+echo "--- Proceso Terminado ($OPCION) ---"
