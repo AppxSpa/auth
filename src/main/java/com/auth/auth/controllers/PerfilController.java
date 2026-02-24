@@ -19,11 +19,11 @@ import com.auth.auth.services.interfaces.PerfilService;
 
 @RestController
 @RequestMapping("/api/auth/usuarios/perfiles")
-public class PefilController {
-
+public class PerfilController {
+ 
     private final PerfilService perfilService;
 
-    public PefilController(PerfilService perfilService) {
+    public PerfilController(PerfilService perfilService) {
         this.perfilService = perfilService;
     }
 
