@@ -1,11 +1,15 @@
 package com.auth.auth.services;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
+import com.auth.auth.dto.PerfilRecordResponse;
 import com.auth.auth.dto.PerfilRequest;
 import com.auth.auth.dto.PerfilResponse;
 import com.auth.auth.entities.Perfil;
 import com.auth.auth.entities.Sistema;
+import com.auth.auth.mappers.PerfilRecordMapper;
 import com.auth.auth.entities.Modulo;
 import com.auth.auth.repositories.PerfilRepository;
 import com.auth.auth.repositories.SistemaRepository;
@@ -20,12 +24,15 @@ public class PerfilServiceImpl implements PerfilService {
 
     private final SistemaRepository sistemaRepository;
     private final ModuloRepository moduloRepository;
+    private final PerfilRecordMapper perfilRecordMapper;
+    
 
     public PerfilServiceImpl(PerfilRepository perfilRepository, SistemaRepository sistemaRepository,
-            ModuloRepository moduloRepository) {
+            ModuloRepository moduloRepository, PerfilRecordMapper perfilRecordMapper) {
         this.perfilRepository = perfilRepository;
         this.sistemaRepository = sistemaRepository;
         this.moduloRepository = moduloRepository;
+        this.perfilRecordMapper = perfilRecordMapper;
     }
 
     private static final String MODULE_NOT_FOUND = "Modulo con %d no encontrado";
@@ -74,5 +81,13 @@ public class PerfilServiceImpl implements PerfilService {
     private Sistema getSitemaById(Long idSistema) {
         return RepositoryUtils.findOrThrow(sistemaRepository.findById(idSistema),
             String.format(SISTEMA_NOT_FOUND, idSistema));
+    }
+
+    @Override
+    public List<PerfilRecordResponse> obtenerPerfiles() {
+        List<Perfil> perfiles = perfilRepository.findAll();
+
+       return perfilRecordMapper.toRecordList(perfiles);
+                
     }
 }

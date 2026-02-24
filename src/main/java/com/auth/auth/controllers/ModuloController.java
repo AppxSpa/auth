@@ -1,10 +1,14 @@
 package com.auth.auth.controllers;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.auth.auth.dto.ApiError;
+import com.auth.auth.dto.ModuloRecordDto;
 import com.auth.auth.dto.ModuloRequest;
 import com.auth.auth.dto.ModuloResponse;
 import com.auth.auth.services.interfaces.ModuloService;
@@ -30,5 +34,17 @@ public class ModuloController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ApiError("Error interno", e.getMessage()));
         }
+    }
+
+    @GetMapping("/{idSistema}")
+    public ResponseEntity<Object> obtenerModulos(@PathVariable Long idSistema) {
+
+        List<ModuloRecordDto> modulos = moduloService.obtenerModulosPorSistema(idSistema);
+        if (modulos.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT)
+                    .body(Map.of("message", "No se encontraron módulos para el sistema con id " + idSistema));
+        }
+        return ResponseEntity.ok(modulos);
+
     }
 }
