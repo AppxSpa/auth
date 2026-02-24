@@ -2,9 +2,12 @@ package com.auth.auth.mappers;
 
 import java.util.List;
 
+import org.springframework.stereotype.Component;
+
 import com.auth.auth.dto.PerfilRecordResponse;
 import com.auth.auth.entities.Perfil;
 
+@Component
 public class PerfilRecordMapperImpl implements PerfilRecordMapper {
 
     @Override
