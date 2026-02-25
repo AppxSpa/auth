@@ -18,7 +18,7 @@ import com.auth.auth.services.interfaces.SistemaService;
 
 @RestController
 @RequestMapping("/api/auth/usuarios/sistemas")
-@CrossOrigin(origins = "http://localhost:5713")
+@CrossOrigin(origins = "http://localhost:5173")
 public class SistemaController {
 
     private final SistemaService sistemaService;

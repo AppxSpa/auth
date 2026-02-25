@@ -19,21 +19,8 @@ public class Sistema {
     @Column(nullable = false, unique = true)
     private String codigo;
 
-    @OneToMany(fetch = FetchType.EAGER, mappedBy = "sistema", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "sistema", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Modulo> modulos = new HashSet<>();
-
-    @OneToMany(mappedBy = "sistema", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private Set<Perfil> perfiles = new HashSet<>();
-
-    public Sistema() {
-    }
-
-    public Sistema(String nombre, String codigo) {
-        this.nombre = nombre;
-        this.codigo = codigo;
-    }
-
-    // Getters y Setters
 
     public Long getId() {
         return id;
@@ -67,34 +54,8 @@ public class Sistema {
         this.modulos = modulos;
     }
 
-    public Set<Perfil> getPerfiles() {
-        return perfiles;
-    }
 
-    public void setPerfiles(Set<Perfil> perfiles) {
-        this.perfiles = perfiles;
-    }
-
-    public void addPerfil(Perfil perfil) {
-        perfiles.add(perfil);
-        perfil.setSistema(this);
-    }
-
-    public void removePerfil(Perfil perfil) {
-        perfiles.remove(perfil);
-        perfil.setSistema(null);
-    }
-
-    // Métodos auxiliares para mantener consistencia bidireccional
-
-    public void addModulo(Modulo modulo) {
-        modulos.add(modulo);
-        modulo.setSistema(this);
-    }
-
-    public void removeModulo(Modulo modulo) {
-        modulos.remove(modulo);
-        modulo.setSistema(null);
-    }
+    
+    
 
 }

@@ -1,7 +1,6 @@
 package com.auth.auth.dto;
 
 public class PermisoDto {
-
     private Long id;
     private String nombre;
 
@@ -13,14 +12,6 @@ public class PermisoDto {
         this.nombre = nombre;
     }
 
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
     public Long getId() {
         return id;
     }
@@ -29,4 +20,11 @@ public class PermisoDto {
         this.id = id;
     }
 
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
 }

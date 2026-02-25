@@ -21,7 +21,7 @@ import com.auth.auth.services.UsuarioService;
 
 @RestController
 @RequestMapping("/api/auth/usuarios")
-@CrossOrigin(origins = { "https://dev.appx.cl/", "http//localhost:5173" })
+@CrossOrigin(origins = { "https://dev.appx.cl/", "http://localhost:5173" })
 public class UsuarioController {
 
     private final UsuarioService usuarioService;

@@ -13,7 +13,7 @@ import com.auth.auth.services.interfaces.PasswordRecoveryService;
 
 @RestController
 @RequestMapping("/api/auth/usuarios")
-@CrossOrigin(origins = { "https://dev.appx.cl/", "http//localhost:5173" })
+@CrossOrigin(origins = { "https://dev.appx.cl/", "http://localhost:5173" })
 public class PasswordController {
 
     private final PasswordRecoveryService passwordRecoveryService;

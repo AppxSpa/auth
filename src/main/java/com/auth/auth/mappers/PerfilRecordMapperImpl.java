@@ -21,10 +21,19 @@ public class PerfilRecordMapperImpl implements PerfilRecordMapper {
             return null;
         }
 
+        Long idSistema = null;
+        if (perfil.getModulos() != null) {
+            idSistema = perfil.getModulos().stream()
+                    .filter(m -> m.getSistema() != null)
+                    .map(m -> m.getSistema().getId())
+                    .findFirst()
+                    .orElse(null);
+        }
+
         return new PerfilRecordResponse(
                 perfil.getId(),
                 perfil.getNombre(),
-                perfil.getIdSistema(),
+                idSistema,
                 toModuloDtoList(perfil.getModulos()));
 
     }

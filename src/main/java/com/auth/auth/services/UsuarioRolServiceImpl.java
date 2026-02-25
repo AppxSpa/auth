@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -38,8 +39,10 @@ public class UsuarioRolServiceImpl implements UsuarioRolService {
 
     @Override
     public void actualizarRoles(Usuario usuario, List<Rol> newRoles) {
-        Set<Rol> uniqueRoles = new HashSet<>(usuario.getRoles());
-        uniqueRoles.addAll(newRoles);
+        Set<Rol> uniqueRoles = new HashSet<>();
+        Optional.ofNullable(usuario.getRoles()).ifPresent(uniqueRoles::addAll);
+        Optional.ofNullable(newRoles).ifPresent(uniqueRoles::addAll);
+
         usuario.setRoles(new ArrayList<>(uniqueRoles));
         usuarioRepository.save(usuario);
     }

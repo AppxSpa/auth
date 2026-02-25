@@ -17,7 +17,9 @@ import com.auth.auth.dto.PerfilRequest;
 import com.auth.auth.dto.PerfilResponse;
 import com.auth.auth.entities.Perfil;
 import com.auth.auth.entities.Sistema;
+import com.auth.auth.mappers.PerfilRecordMapper;
 import com.auth.auth.repositories.PerfilRepository;
+import com.auth.auth.repositories.ModuloRepository;
 import com.auth.auth.repositories.SistemaRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +30,12 @@ class PerfilServiceImplTest {
 
     @Mock
     private SistemaRepository sistemaRepository;
+
+    @Mock
+    private ModuloRepository moduloRepository;
+
+    @Mock
+    private PerfilRecordMapper perfilRecordMapper;
 
     @InjectMocks
     private PerfilServiceImpl perfilService;
@@ -53,7 +61,6 @@ class PerfilServiceImplTest {
         Perfil saved = new Perfil();
         saved.setId(10L);
         saved.setNombre(req.getNombre());
-        saved.setSistema(sistema);
 
         when(perfilRepository.save(any(Perfil.class))).thenReturn(saved);
 

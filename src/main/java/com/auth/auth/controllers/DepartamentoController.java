@@ -15,7 +15,7 @@ import com.auth.auth.services.interfaces.DepartamentoService;
 
 @RestController
 @RequestMapping("/api/auth/usuarios/departamentos")
-@CrossOrigin(origins = { "https://dev.appx.cl/", "http//localhost:5173" })
+@CrossOrigin(origins = { "https://dev.appx.cl/", "http://localhost:5173" })
 public class DepartamentoController {
 
     private final DepartamentoService departamentoService;

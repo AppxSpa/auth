@@ -70,7 +70,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
                     UsuarioDepartamentos usuarioDepartamentos = usuarioDepartamentosService.findByUsuario(usuario);
                     if (usuarioDepartamentos != null) {
-                        dto.setIdDepto(usuarioDepartamentos.getIdDepartamento());
+                        dto.setIdDepto(usuarioDepartamentos.getDepartamento().getId());
                         DepartamentoResponse departamentoResponse = apiDepartamentoService
                                 .getDepartamentoById(usuarioDepartamentos.getDepartamento().getId());
                         if (departamentoResponse != null) {
@@ -104,7 +104,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         UsuarioDepartamentos usuarioDepartamentos = usuarioDepartamentosService.findByUsuario(usuario);
         UsuarioResponse usuarioResponse = new UsuarioResponse();
         usuarioResponse.setUsername(usuario.getUsername());
-        usuarioResponse.setIdDepartamento(usuarioDepartamentos.getDepartamento().getId());
+        if (usuarioDepartamentos != null) {
+            usuarioResponse.setIdDepartamento(usuarioDepartamentos.getDepartamento().getId());
+        }
         return usuarioResponse;
     }
 

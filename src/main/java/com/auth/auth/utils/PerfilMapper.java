@@ -1,18 +1,22 @@
 package com.auth.auth.utils;
 
+import java.util.Collections;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.auth.auth.dto.ModuloDto;
 import com.auth.auth.dto.PerfilDto;
 import com.auth.auth.dto.PermisoDto;
 import com.auth.auth.dto.SistemaDto;
+import com.auth.auth.entities.Modulo;
 import com.auth.auth.entities.Perfil;
 import com.auth.auth.entities.Sistema;
 
-public class PerfilMapper {
+public final class PerfilMapper {
 
     private PerfilMapper() {
-        // Util class
+        // Utility class
     }
 
     public static PerfilDto toDto(Perfil perfil) {
@@ -20,32 +24,13 @@ public class PerfilMapper {
         dto.setId(perfil.getId());
         dto.setNombre(perfil.getNombre());
 
-        Sistema sistema = perfil.getSistema();
-        if (sistema != null) {
-            // construir SistemaDto (sin tomar modulos desde sistema)
-            SistemaDto sistemaDto = new SistemaDto();
-            sistemaDto.setNombreSistema(sistema.getNombre());
-            sistemaDto.setCodSistema(sistema.getCodigo());
-            dto.setSistema(sistemaDto);
-        }
-
         // mapear modulos desde el propio perfil
-        if (perfil.getModulos() != null) {
-            java.util.Set<ModuloDto> modulosDto = perfil.getModulos().stream().map(modulo -> {
-                ModuloDto moduloDto = new ModuloDto();
-                moduloDto.setIdModulo(modulo.getId());
-                moduloDto.setNombreModulo(modulo.getNombre());
-
-                java.util.Set<PermisoDto> permisoDtos = modulo.getPermisos().stream()
-                        .map(permiso -> new PermisoDto(permiso.getId(), permiso.getNombre()))
-                        .collect(Collectors.toSet());
-
-                moduloDto.setPermisos(permisoDtos);
-                return moduloDto;
-            }).collect(Collectors.toSet());
-
-            dto.setModulos(modulosDto);
-        }
+        dto.setModulos(
+                Optional.ofNullable(perfil.getModulos())
+                        .orElse(Collections.emptySet())
+                        .stream()
+                        .map(PerfilMapper::toModuloDto)
+                        .collect(Collectors.toSet()));
 
         return dto;
     }
@@ -54,22 +39,30 @@ public class PerfilMapper {
         SistemaDto sistemaDto = new SistemaDto();
         sistemaDto.setNombreSistema(sistema.getNombre());
         sistemaDto.setCodSistema(sistema.getCodigo());
-        // Nota: este método sigue disponible si se necesita mapear todos los módulos de
-        // un sistema
-        java.util.Set<ModuloDto> modulosDto = sistema.getModulos().stream().map(modulo -> {
-            ModuloDto moduloDto = new ModuloDto();
-            moduloDto.setIdModulo(modulo.getId());
-            moduloDto.setNombreModulo(modulo.getNombre());
 
-            java.util.Set<PermisoDto> permisoDtos = modulo.getPermisos().stream()
-                    .map(permiso -> new PermisoDto(permiso.getId(), permiso.getNombre()))
-                    .collect(Collectors.toSet());
+        // Nota: este método sigue disponible si se necesita mapear todos los módulos de un sistema
+        sistemaDto.setModulos(
+                Optional.ofNullable(sistema.getModulos())
+                        .orElse(Collections.emptySet())
+                        .stream()
+                        .map(PerfilMapper::toModuloDto)
+                        .collect(Collectors.toSet()));
 
-            moduloDto.setPermisos(permisoDtos);
-            return moduloDto;
-        }).collect(Collectors.toSet());
-
-        sistemaDto.setModulos(modulosDto);
         return sistemaDto;
+    }
+
+    private static ModuloDto toModuloDto(Modulo modulo) {
+        ModuloDto moduloDto = new ModuloDto();
+        moduloDto.setIdModulo(modulo.getId());
+        moduloDto.setNombreModulo(modulo.getNombre());
+
+        Set<PermisoDto> permisoDtos = Optional.ofNullable(modulo.getPermisos())
+                .orElse(Collections.emptySet())
+                .stream()
+                .map(permiso -> new PermisoDto(permiso.getId(), permiso.getNombre()))
+                .collect(Collectors.toSet());
+
+        moduloDto.setPermisos(permisoDtos);
+        return moduloDto;
     }
 }

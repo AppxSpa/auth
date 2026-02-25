@@ -2,6 +2,7 @@ package com.auth.auth.services;
 
 import com.auth.auth.entities.Perfil;
 import com.auth.auth.entities.Usuario;
+import com.auth.auth.entities.UsuarioSistemaPerfil;
 import com.auth.auth.repositories.PerfilRepository;
 import com.auth.auth.repositories.UsuarioRepository;
 import com.auth.auth.services.interfaces.UsuarioPerfilService;
@@ -9,6 +10,7 @@ import com.auth.auth.utils.RepositoryUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class UsuarioPerfilServiceImpl implements UsuarioPerfilService {
@@ -34,7 +36,13 @@ public class UsuarioPerfilServiceImpl implements UsuarioPerfilService {
             throw new IllegalArgumentException("Alguno de los perfiles no fue encontrado");
         }
 
-        usuario.setPerfiles(perfiles);
+        usuario.getAccesosSistemas().clear();
+        for (Perfil perfil : perfiles) {
+            UsuarioSistemaPerfil acceso = new UsuarioSistemaPerfil();
+            acceso.setUsuario(usuario);
+            acceso.setPerfil(perfil);
+            usuario.getAccesosSistemas().add(acceso);
+        }
         usuarioRepository.save(usuario);
     }
 
@@ -46,14 +54,13 @@ public class UsuarioPerfilServiceImpl implements UsuarioPerfilService {
         Perfil perfil = RepositoryUtils.findOrThrow(perfilRepository.findById(perfilId),
                 String.format(PROFILE_NOT_FOUND, perfilId));
 
-        List<Perfil> actuales = usuario.getPerfiles();
-        if (actuales == null) {
-            actuales = new java.util.ArrayList<>();
-        }
-        boolean existe = actuales.stream().anyMatch(p -> p.getId().equals(perfil.getId()));
+        Set<UsuarioSistemaPerfil> accesosActuales = usuario.getAccesosSistemas();
+        boolean existe = accesosActuales.stream().anyMatch(acceso -> acceso.getPerfil().getId().equals(perfil.getId()));
         if (!existe) {
-            actuales.add(perfil);
-            usuario.setPerfiles(actuales);
+            UsuarioSistemaPerfil nuevoAcceso = new UsuarioSistemaPerfil();
+            nuevoAcceso.setUsuario(usuario);
+            nuevoAcceso.setPerfil(perfil);
+            accesosActuales.add(nuevoAcceso);
             usuarioRepository.save(usuario);
         }
     }
@@ -63,14 +70,10 @@ public class UsuarioPerfilServiceImpl implements UsuarioPerfilService {
         Usuario usuario = RepositoryUtils.findOrThrow(usuarioRepository.findByUsername(username),
                 String.format(USER_NOT_FOUND, username));
 
-        List<Perfil> actuales = usuario.getPerfiles();
-        if (actuales == null || actuales.isEmpty()) {
-            return;
-        }
+        Set<UsuarioSistemaPerfil> accesosActuales = usuario.getAccesosSistemas();
 
-        boolean removed = actuales.removeIf(p -> p.getId().equals(perfilId));
+        boolean removed = accesosActuales.removeIf(acceso -> acceso.getPerfil().getId().equals(perfilId));
         if (removed) {
-            usuario.setPerfiles(actuales);
             usuarioRepository.save(usuario);
         }
     }

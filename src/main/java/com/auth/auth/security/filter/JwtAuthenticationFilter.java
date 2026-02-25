@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,7 +19,9 @@ import com.auth.auth.dto.AuthenticationResponse;
 import com.auth.auth.dto.PerfilDto;
 import com.auth.auth.utils.PerfilMapper;
 import com.auth.auth.entities.Perfil;
+import com.auth.auth.entities.Sistema;
 import com.auth.auth.entities.Usuario;
+import com.auth.auth.entities.UsuarioSistemaPerfil;
 import com.auth.auth.repositories.UsuarioRepository;
 import com.auth.auth.utils.JwtUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,8 +42,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final JwtUtils jwtUtils;
     private final UsuarioRepository usuarioRepository;
-        private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory
-                .getLogger(JwtAuthenticationFilter.class);
+    private static final Logger log = LoggerFactory
+            .getLogger(JwtAuthenticationFilter.class);
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtUtils jwtUtils,
             UsuarioRepository usuarioRepository) {
@@ -87,23 +91,25 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         // LOG: imprimir perfiles y sistemas relacionados para depuración
         try {
-            logger.info("Login usuario='{}' id={} - perfiles asociados:", username, usuario.getId());
-            if (usuario.getPerfiles() != null) {
-                for (Perfil p : usuario.getPerfiles()) {
-                    String sistemaInfo = p.getSistema() != null
-                            ? String.format("sistema[id=%d,name=%s]", p.getSistema().getId(), p.getSistema().getNombre())
+            log.info("Login usuario='{}' id={} - perfiles asociados:", username, usuario.getId());
+            if (usuario.getAccesosSistemas() != null) {
+                for (UsuarioSistemaPerfil acceso : usuario.getAccesosSistemas()) {
+                    Perfil p = acceso.getPerfil();
+                    Sistema s = acceso.getSistema();
+                    String sistemaInfo = s != null
+                            ? String.format("sistema[id=%d,name=%s]", s.getId(), s.getNombre())
                             : "sistema=null";
-                    logger.info("  perfil[id={},name={}] -> {}", p.getId(), p.getNombre(), sistemaInfo);
-                    if (p.getSistema() != null && p.getSistema().getModulos() != null) {
-                        p.getSistema().getModulos().forEach(m -> logger.info("    modulo[id={},nombre={}]", m.getId(), m.getNombre()));
+                    log.info("  perfil[id={},name={}] -> {}", p.getId(), p.getNombre(), sistemaInfo);
+                    if (p.getModulos() != null) {
+                        p.getModulos().forEach(m -> log.info("    modulo[id={},nombre={}]", m.getId(), m.getNombre()));
                     }
                 }
             }
         } catch (Exception ex) {
-            logger.warn("Error al loggear perfiles del usuario {}: {}", username, ex.getMessage());
+            log.warn("Error al loggear perfiles del usuario {}: {}", username, ex.getMessage());
         }
 
-        List<Perfil> perfilesUsuario = usuario.getPerfiles();
+        List<Perfil> perfilesUsuario = usuario.getAccesosSistemas().stream().map(UsuarioSistemaPerfil::getPerfil).toList();
 
         List<PerfilDto> perfilesDto = perfilesUsuario.stream().map(PerfilMapper::toDto).toList();
 

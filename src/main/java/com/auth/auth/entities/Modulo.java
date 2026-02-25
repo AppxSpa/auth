@@ -7,8 +7,7 @@ import java.util.Set;
 @Entity
 @Table(name = "modulos")
 public class Modulo {
-
-    @Id
+@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
@@ -24,11 +23,6 @@ public class Modulo {
 
     @OneToMany(mappedBy = "modulo", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Permiso> permisos = new HashSet<>();
-
-    @ManyToMany(mappedBy = "modulos", fetch = FetchType.LAZY)
-    private Set<Perfil> perfiles = new HashSet<>();
-
-    // Getters y setters
 
     public Long getId() {
         return id;
@@ -70,23 +64,6 @@ public class Modulo {
         this.permisos = permisos;
     }
 
-    public Set<Perfil> getPerfiles() {
-        return perfiles;
-    }
 
-    public void setPerfiles(Set<Perfil> perfiles) {
-        this.perfiles = perfiles;
-    }
-
-    // Métodos auxiliares para mantener consistencia bidireccional
-
-    public void addPermiso(Permiso permiso) {
-        permisos.add(permiso);
-        permiso.setModulo(this);
-    }
-
-    public void removePermiso(Permiso permiso) {
-        permisos.remove(permiso);
-        permiso.setModulo(null);
-    }
+    
 }

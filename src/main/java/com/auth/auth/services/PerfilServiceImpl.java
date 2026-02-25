@@ -44,7 +44,6 @@ public class PerfilServiceImpl implements PerfilService {
         perfil.setNombre(request.getNombre());
 
         Sistema sistema = getSitemaById(request.getSistemaId());
-        perfil.setSistema(sistema);
 
         // Si se enviaron moduloIds, resolver y asignar módulos (validando que pertenezcan al sistema)
         if (request.getModuloIds() != null && !request.getModuloIds().isEmpty()) {
@@ -63,7 +62,7 @@ public class PerfilServiceImpl implements PerfilService {
 
         Perfil guardado = perfilRepository.save(perfil);
 
-        String nombreSistema = guardado.getSistema() != null ? guardado.getSistema().getNombre() : null;
+        String nombreSistema = sistema.getNombre();
 
         PerfilResponse resp = new PerfilResponse(guardado.getId(), guardado.getNombre(), nombreSistema);
         // agregar nombres de modulos al response

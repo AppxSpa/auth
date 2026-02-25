@@ -1,6 +1,7 @@
 package com.auth.auth.entities;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "permisos")
@@ -13,21 +14,10 @@ public class Permiso {
     @Column(nullable = false)
     private String nombre;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "sistema_id", nullable = false)
-    private Sistema sistema;
-
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "modulo_id", nullable = false)
+    @JsonIgnore
     private Modulo modulo;
-
-    public Permiso() {
-    }
-
-    public Permiso(String nombre, Sistema sistema) {
-        this.nombre = nombre;
-        this.sistema = sistema;
-    }
 
     public Long getId() {
         return id;
@@ -43,22 +33,6 @@ public class Permiso {
 
     public void setNombre(String nombre) {
         this.nombre = nombre;
-    }
-
-    public Sistema getSistema() {
-        return sistema;
-    }
-
-    public void setSistema(Sistema sistema) {
-        this.sistema = sistema;
-    }
-
-    public String getNombreSistema() {
-        return sistema != null ? sistema.getNombre() : null;
-    }
-
-    public String getCodSistema() {
-        return sistema != null ? sistema.getCodigo() : null;
     }
 
     public Modulo getModulo() {

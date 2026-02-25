@@ -1,9 +1,11 @@
 package com.auth.auth.dto;
 
+import java.util.Set;
+
 public class PerfilRequest {
     private String nombre;
     private Long sistemaId;
-    private java.util.Set<Long> moduloIds;
+    private Set<Long> moduloIds;
 
     public String getNombre() {
         return nombre;
