@@ -1,5 +1,7 @@
 package com.auth.auth.utils;
 
+import java.util.stream.Collectors;
+
 import com.auth.auth.dto.ModuloDto;
 import com.auth.auth.dto.PerfilDto;
 import com.auth.auth.dto.PermisoDto;
@@ -36,11 +38,11 @@ public class PerfilMapper {
 
                 java.util.Set<PermisoDto> permisoDtos = modulo.getPermisos().stream()
                         .map(permiso -> new PermisoDto(permiso.getId(), permiso.getNombre()))
-                        .collect(java.util.stream.Collectors.toSet());
+                        .collect(Collectors.toSet());
 
                 moduloDto.setPermisos(permisoDtos);
                 return moduloDto;
-            }).collect(java.util.stream.Collectors.toSet());
+            }).collect(Collectors.toSet());
 
             dto.setModulos(modulosDto);
         }
@@ -52,7 +54,8 @@ public class PerfilMapper {
         SistemaDto sistemaDto = new SistemaDto();
         sistemaDto.setNombreSistema(sistema.getNombre());
         sistemaDto.setCodSistema(sistema.getCodigo());
-        // Nota: este método sigue disponible si se necesita mapear todos los módulos de un sistema
+        // Nota: este método sigue disponible si se necesita mapear todos los módulos de
+        // un sistema
         java.util.Set<ModuloDto> modulosDto = sistema.getModulos().stream().map(modulo -> {
             ModuloDto moduloDto = new ModuloDto();
             moduloDto.setIdModulo(modulo.getId());
@@ -60,11 +63,11 @@ public class PerfilMapper {
 
             java.util.Set<PermisoDto> permisoDtos = modulo.getPermisos().stream()
                     .map(permiso -> new PermisoDto(permiso.getId(), permiso.getNombre()))
-                    .collect(java.util.stream.Collectors.toSet());
+                    .collect(Collectors.toSet());
 
             moduloDto.setPermisos(permisoDtos);
             return moduloDto;
-        }).collect(java.util.stream.Collectors.toSet());
+        }).collect(Collectors.toSet());
 
         sistemaDto.setModulos(modulosDto);
         return sistemaDto;

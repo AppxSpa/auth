@@ -8,6 +8,17 @@ public class ModuloDto {
     private String nombreModulo;
     private Set<PermisoDto> permisos;
 
+    
+
+    public ModuloDto() {
+    }
+
+    public ModuloDto(Long idModulo, String nombreModulo, Set<PermisoDto> permisos) {
+        this.idModulo = idModulo;
+        this.nombreModulo = nombreModulo;
+        this.permisos = permisos;
+    }
+
     public Long getIdModulo() {
         return idModulo;
     }

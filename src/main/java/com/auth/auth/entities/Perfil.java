@@ -83,4 +83,13 @@ public class Perfil {
         modulos.remove(modulo);
     }
 
+    public Long getIdSistema() {
+        return sistema != null ? sistema.getId() : null;
+    }
+
+    public String getCodSistema() {
+        return sistema != null ? sistema.getCodigo() : null;
+    }
+
+
 }
