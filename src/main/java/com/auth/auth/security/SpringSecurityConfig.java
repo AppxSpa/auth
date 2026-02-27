@@ -10,6 +10,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -27,11 +28,13 @@ public class SpringSecurityConfig {
     private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtUtils jwtUtils;
      private final UsuarioRepository usuarioRepository;
+    private final PlatformTransactionManager transactionManager;
 
-    public SpringSecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtUtils jwtUtils,UsuarioRepository usuarioRepository) {
+    public SpringSecurityConfig(AuthenticationConfiguration authenticationConfiguration, JwtUtils jwtUtils,UsuarioRepository usuarioRepository, PlatformTransactionManager transactionManager) {
         this.authenticationConfiguration = authenticationConfiguration;
         this.jwtUtils = jwtUtils;
         this.usuarioRepository = usuarioRepository;
+        this.transactionManager = transactionManager;
     }
 
     @Bean
@@ -72,7 +75,7 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/auth/usuarios/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/usuarios/**").permitAll()
                         .anyRequest().authenticated())
-                .addFilter(new JwtAuthenticationFilter(authenticationManager(), jwtUtils,usuarioRepository))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), jwtUtils,usuarioRepository, transactionManager))
                 .addFilter(new JwtValidationFilter(authenticationManager(), jwtUtils))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS));

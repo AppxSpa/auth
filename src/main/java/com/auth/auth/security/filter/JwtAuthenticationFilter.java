@@ -14,6 +14,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.auth.auth.dto.AuthenticationResponse;
 import com.auth.auth.dto.PerfilDto;
@@ -42,14 +44,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     private final JwtUtils jwtUtils;
     private final UsuarioRepository usuarioRepository;
+    private final PlatformTransactionManager transactionManager;
     private static final Logger log = LoggerFactory
             .getLogger(JwtAuthenticationFilter.class);
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtUtils jwtUtils,
-            UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository, PlatformTransactionManager transactionManager) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.usuarioRepository = usuarioRepository;
+        this.transactionManager = transactionManager;
     }
 
     @Override
@@ -86,32 +90,36 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String username = user.getUsername();
         Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
 
-        Usuario usuario = usuarioRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("no existe el usuario"));
+        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
 
-        // LOG: imprimir perfiles y sistemas relacionados para depuración
-        try {
-            log.info("Login usuario='{}' id={} - perfiles asociados:", username, usuario.getId());
-            if (usuario.getAccesosSistemas() != null) {
-                for (UsuarioSistemaPerfil acceso : usuario.getAccesosSistemas()) {
-                    Perfil p = acceso.getPerfil();
-                    Sistema s = acceso.getSistema();
-                    String sistemaInfo = s != null
-                            ? String.format("sistema[id=%d,name=%s]", s.getId(), s.getNombre())
-                            : "sistema=null";
-                    log.info("  perfil[id={},name={}] -> {}", p.getId(), p.getNombre(), sistemaInfo);
-                    if (p.getModulos() != null) {
-                        p.getModulos().forEach(m -> log.info("    modulo[id={},nombre={}]", m.getId(), m.getNombre()));
+        List<PerfilDto> perfilesDto = transactionTemplate.execute(status -> {
+            Usuario usuario = usuarioRepository.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("no existe el usuario"));
+
+            // LOG: imprimir perfiles y sistemas relacionados para depuración
+            try {
+                log.info("Login usuario='{}' id={} - perfiles asociados:", username, usuario.getId());
+                if (usuario.getAccesosSistemas() != null) {
+                    for (UsuarioSistemaPerfil acceso : usuario.getAccesosSistemas()) {
+                        Perfil p = acceso.getPerfil();
+                        Sistema s = acceso.getSistema();
+                        String sistemaInfo = s != null
+                                ? String.format("sistema[id=%d,name=%s]", s.getId(), s.getNombre())
+                                : "sistema=null";
+                        log.info("  perfil[id={},name={}] -> {}", p.getId(), p.getNombre(), sistemaInfo);
+                        if (p.getModulos() != null) {
+                            p.getModulos().forEach(m -> log.info("    modulo[id={},nombre={}]", m.getId(), m.getNombre()));
+                        }
                     }
                 }
+            } catch (Exception ex) {
+                log.warn("Error al loggear perfiles del usuario {}: {}", username, ex.getMessage());
             }
-        } catch (Exception ex) {
-            log.warn("Error al loggear perfiles del usuario {}: {}", username, ex.getMessage());
-        }
 
-        List<Perfil> perfilesUsuario = usuario.getAccesosSistemas().stream().map(UsuarioSistemaPerfil::getPerfil).toList();
+            List<Perfil> perfilesUsuario = usuario.getAccesosSistemas().stream().map(UsuarioSistemaPerfil::getPerfil).toList();
 
-        List<PerfilDto> perfilesDto = perfilesUsuario.stream().map(PerfilMapper::toDto).toList();
+            return perfilesUsuario.stream().map(PerfilMapper::toDto).toList();
+        });
 
         Claims claims = Jwts.claims()
                 .add("authorities", new ObjectMapper().writeValueAsString(roles))
