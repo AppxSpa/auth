@@ -57,13 +57,13 @@ public class RegistroUsuarioServiceImpl implements RegistroUsuarioService {
 
     @Override
     public UsuarioResponse registrarUsuario(Usuario usuario) {
+        int rut = Integer.parseInt(usuario.getUsername());
+        Persona persona = personaService.getPersonaByRut(rut);
+        PersonaResponse personaResponse = apiServicePersona.getPersonaInfo(persona.getRut());
         usuario.setRoles(usuarioRolService.getRolesParaUsuario(usuario.isAdmin(), usuario.isFunc()));
         usuario.setPassword(passwordEncoder.encode(usuario.getPassword()));
         usuario.setActivationToken(usuario.generateActivationToken());
 
-        int rut = Integer.parseInt(usuario.getUsername());
-        Persona persona = personaService.getPersonaByRut(rut);
-        PersonaResponse personaResponse = apiServicePersona.getPersonaInfo(persona.getRut());
         usuario.setPersona(persona);
 
         sendMailActivation(usuario, personaResponse);
