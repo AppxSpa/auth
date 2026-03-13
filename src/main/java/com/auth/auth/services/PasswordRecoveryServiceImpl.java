@@ -1,5 +1,6 @@
 package com.auth.auth.services;
 
+import com.auth.auth.repositories.UsuarioRepository;
 import java.util.Map;
 import java.util.UUID;
 
@@ -21,6 +22,7 @@ import com.auth.auth.services.interfaces.PasswordResetTokenService;
 @Service
 public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
 
+    private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final ApiServiceMail apiServiceMail;
     private final ApiServicePersona apiService;
@@ -34,13 +36,14 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
             ApiServiceMail apiServiceMail,
             ApiServicePersona apiService,
             ApiProperties apiProperties,
-            UsuarioService usuarioService) {
+            UsuarioService usuarioService, UsuarioRepository usuarioRepository) {
         this.passwordEncoder = passwordEncoder;
         this.apiServiceMail = apiServiceMail;
         this.apiProperties = apiProperties;
         this.apiService = apiService;
         this.usuarioService = usuarioService;
         this.passwordResetTokenService = passwordResetTokenService;
+        this.usuarioRepository = usuarioRepository;
     }
 
     @Override
@@ -48,6 +51,10 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
 
         // Buscar al usuario por RUT
         Usuario usuario = usuarioService.findByUsername(rut.toString());
+
+        usuario.setEnabled(false);
+
+        usuarioRepository.save(usuario);
 
         // Generar un token único y temporal
         String token = UUID.randomUUID().toString();
@@ -88,7 +95,8 @@ public class PasswordRecoveryServiceImpl implements PasswordRecoveryService {
 
         String encodedPassword = passwordEncoder.encode(newPassword.getNewPassword());
         usuario.setPassword(encodedPassword);
-        usuarioService.save(usuario);
+        usuario.setEnabled(true);
+        usuarioRepository.save(usuario);
 
         passwordResetTokenService.delete(passwordResetToken);
 
