@@ -1,16 +1,15 @@
 package com.auth.auth.services;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import com.auth.auth.configuration.ApiProperties;
 import com.auth.auth.services.interfaces.ApiServiceMail;
+import com.auth.auth.exceptions.SendMailExceptions;
 
 import reactor.core.publisher.Mono;
 
@@ -28,7 +27,7 @@ public class ApiServiceMailImpl implements ApiServiceMail {
         try {
             webClientMail.post()
                     .uri(uriBuilder -> uriBuilder
-                            .path("/send")
+                            .path("send")
                             .queryParam("to", to)
                             .queryParam("subject", subject)
                             .queryParam("templateName", templateName)
@@ -39,13 +38,12 @@ public class ApiServiceMailImpl implements ApiServiceMail {
                     .onStatus(
                             HttpStatusCode::isError,
                             response -> response.bodyToMono(String.class)
-                                    .flatMap(error -> Mono.error(new RuntimeException("Error en la API: " + error))))
+                                    .flatMap(error -> Mono.error(new SendMailExceptions("Error en la API de correos: " + error))))
                     .bodyToMono(Void.class)
                     .block();
 
-        } catch (WebClientResponseException e) {
-            HashMap<String, String> response = new HashMap<>();
-            response.put("message", e.getMessage());
+        } catch (Exception e) {
+            throw new SendMailExceptions("Error de comunicación al intentar enviar el correo: " + e.getMessage());
         }
     }
 

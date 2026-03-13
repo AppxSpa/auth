@@ -1,6 +1,5 @@
 package com.auth.auth.services;
 
-import java.util.HashMap;
 
 import org.springframework.http.HttpStatusCode;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -9,10 +8,10 @@ import com.auth.auth.api.PersonaRequest;
 import com.auth.auth.api.PersonaResponse;
 import com.auth.auth.configuration.ApiProperties;
 import com.auth.auth.services.interfaces.ApiServicePersona;
+import com.auth.auth.exceptions.SistemaException;
 import reactor.core.publisher.Mono;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Service
 public class ApiServicePersonaImpl implements ApiServicePersona {
@@ -34,13 +33,12 @@ public class ApiServicePersonaImpl implements ApiServicePersona {
                     .onStatus(
                             HttpStatusCode::isError,
                             response -> response.bodyToMono(String.class)
-                                    .flatMap(error -> Mono.error(new RuntimeException("Error en la API: " + error))))
+                                    .flatMap(error -> Mono.error(new SistemaException("Error en la API de persona: " + error))))
                     .bodyToMono(Void.class) //
                     .block();
 
-        } catch (WebClientResponseException e) {
-            HashMap<String, String> response = new HashMap<>();
-            response.put("message", e.getMessage());
+        } catch (Exception e) {
+            throw new SistemaException("Fallo de comunicación al crear persona: " + e.getMessage());
         }
 
     }
